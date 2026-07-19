@@ -80,7 +80,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		// 	return err
 		// }
 
-		if result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{AccountID: arg.FromAccountID, Amount: arg.Amount}); err != nil {
+		if result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{AccountID: arg.FromAccountID, Amount: -arg.Amount}); err != nil {
 			return err
 		}
 

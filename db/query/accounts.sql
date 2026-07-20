@@ -12,6 +12,14 @@ RETURNING *;
 SELECT * FROM accounts
 WHERE id = $1 LIMIT 1;
 
+-- name: GetAccountForUpdate :one
+SELECT * FROM accounts
+WHERE id = $1 LIMIT 1 
+FOR NO KEY UPDATE;
+/*The FOR UPDATE clause in SQL is used to lock the selected rows so that other transactions cannot modify or delete them until the current transaction is committed or rolled back. It is commonly used in transactional systems to prevent concurrency issues like lost updates.*/
+
+
+
 -- name: ListAccounts :many
 SELECT * FROM accounts
 ORDER BY id

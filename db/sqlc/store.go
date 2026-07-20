@@ -6,6 +6,8 @@ import (
 	"fmt"
 )
 
+var txKey = struct{}{}
+
 // Store provides all functions to execure db queries and transactions
 type Store struct {
 	*Queries
@@ -65,6 +67,9 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
+		// txName := ctx.Value(txKey)
+
+		// fmt.Println(txName, "create transfer")
 		if result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			FromAccountID: arg.FromAccountID,
 			ToAccountID:   arg.ToAccountID,
@@ -73,17 +78,39 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		// if result.FromAccount, err = q.GetAccount(ctx, arg.FromAccountID); err != nil {
-		// 	return err
-		// }
-		// if result.ToAccount, err = q.GetAccount(ctx, arg.ToAccountID); err != nil {
-		// 	return err
-		// }
+		// fmt.Println(txName, "Get account for update 1")
+		account1, err := q.GetAccountForUpdate(context.Background(), arg.FromAccountID)
+		if err != nil {
+			return err
+		}
 
+		// fmt.Println(txName, "update account 1")
+		result.FromAccount, err = q.UpdateAccount(context.Background(), UpdateAccountParams{
+			ID:      arg.FromAccountID,
+			Balance: account1.Balance - arg.Amount,
+		})
+		if err != nil {
+			return err
+		}
+
+		// fmt.Println(txName, "Get account for update 2")
+		account2, err := q.GetAccountForUpdate(context.Background(), arg.ToAccountID)
+		if err != nil {
+			return err
+		}
+
+		// fmt.Println(txName, "update account 2")
+		result.ToAccount, err = q.UpdateAccount(context.Background(), UpdateAccountParams{ID: arg.ToAccountID, Balance: account2.Balance + arg.Amount})
+		if err != nil {
+			return err
+		}
+
+		// fmt.Println(txName, "create entry 1")
 		if result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{AccountID: arg.FromAccountID, Amount: -arg.Amount}); err != nil {
 			return err
 		}
 
+		// fmt.Println(txName, "create entry 2")
 		if result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{AccountID: arg.ToAccountID, Amount: arg.Amount}); err != nil {
 			return err
 		}

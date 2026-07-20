@@ -67,7 +67,29 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 	return i, err
 }
 
+const getAccountForUpdate = `-- name: GetAccountForUpdate :one
+SELECT id, owner, balance, currency, created_at FROM accounts
+WHERE id = $1 LIMIT 1 
+FOR NO KEY UPDATE
+`
+
+func (q *Queries) GetAccountForUpdate(ctx context.Context, id int64) (Account, error) {
+	row := q.queryRow(ctx, q.getAccountForUpdateStmt, getAccountForUpdate, id)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Balance,
+		&i.Currency,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listAccounts = `-- name: ListAccounts :many
+
+
+
 SELECT id, owner, balance, currency, created_at FROM accounts
 ORDER BY id
 LIMIT $1 
@@ -79,6 +101,7 @@ type ListAccountsParams struct {
 	Offset int32 `json:"offset"`
 }
 
+// The FOR UPDATE clause in SQL is used to lock the selected rows so that other transactions cannot modify or delete them until the current transaction is committed or rolled back. It is commonly used in transactional systems to prevent concurrency issues like lost updates.
 func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error) {
 	rows, err := q.query(ctx, q.listAccountsStmt, listAccounts, arg.Limit, arg.Offset)
 	if err != nil {

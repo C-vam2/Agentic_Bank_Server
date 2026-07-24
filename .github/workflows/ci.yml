@@ -15,6 +15,9 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
 
+    env:
+      GOTOOLCHAIN: go1.25.0+auto
+
     services:
       postgres:
         image: postgres:18-alpine

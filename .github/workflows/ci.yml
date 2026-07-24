@@ -37,6 +37,9 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.23'
+      
+    - name: Migrate DB
+      run: make migrateup
 
     - name: Test
       run: make test

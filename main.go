@@ -6,18 +6,20 @@ import (
 
 	"github.com/Agentic_Bank_Server/api"
 	db "github.com/Agentic_Bank_Server/db/sqlc"
+	"github.com/Agentic_Bank_Server/utils"
 
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbDriver    = "postgres"
-	dbSource    = "postgres://root:secret@localhost:5432/agentic_bank_server?sslmode=disable"
-	portAddress = "0.0.0.0:8080"
-)
-
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	config, err := utils.LoadConfig(".")
+
+	if err != nil {
+		log.Fatal("Unable to load configs ", err)
+		return
+	}
+
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 
 	if err != nil {
 		log.Fatal("cannot connect to the database ", err)
@@ -26,7 +28,7 @@ func main() {
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
 
-	if err := server.Start(portAddress); err != nil {
+	if err := server.Start(config.ServerAddress); err != nil {
 		log.Fatal("cannot start server on port :8080")
 	}
 }

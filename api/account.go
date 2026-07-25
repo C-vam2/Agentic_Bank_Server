@@ -21,7 +21,7 @@ func (server *Server) createAccount(c *gin.Context) {
 		return
 	}
 
-	account, err := server.store.Queries.CreateAccount(c, db.CreateAccountParams{
+	account, err := server.store.CreateAccount(c, db.CreateAccountParams{
 		Owner:    req.Owner,
 		Balance:  0,
 		Currency: req.Currency,
@@ -49,7 +49,7 @@ func (server *Server) getAccount(c *gin.Context) {
 		return
 	}
 
-	account, err := server.store.Queries.GetAccount(c, req.ID)
+	account, err := server.store.GetAccount(c, req.ID)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -83,7 +83,7 @@ func (server *Server) listAccount(c *gin.Context) {
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
-	accounts, err := server.store.Queries.ListAccounts(c, arg)
+	accounts, err := server.store.ListAccounts(c, arg)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

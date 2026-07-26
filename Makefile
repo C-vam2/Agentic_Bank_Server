@@ -10,8 +10,14 @@ dropdb:
 migrateup:
 	migrate -path db/migrations -database "postgresql://root:secret@localhost:5432/agentic_bank_server?sslmode=disable" -verbose up
 
+migrateup1:
+	migrate -path db/migrations -database "postgresql://root:secret@localhost:5432/agentic_bank_server?sslmode=disable" -verbose up 1
+
 migratedown:
 	migrate -path db/migrations -database "postgresql://root:secret@localhost:5432/agentic_bank_server?sslmode=disable" -verbose down
+
+migratedown1:
+	migrate -path db/migrations -database "postgresql://root:secret@localhost:5432/agentic_bank_server?sslmode=disable" -verbose down 1
 
 sqlc:
 	sqlc generate

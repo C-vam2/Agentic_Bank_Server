@@ -30,8 +30,11 @@ func TestGetAccountApi(t *testing.T) {
 		Times(1).
 		Return(account, nil)
 
+	config, err := utils.LoadConfig("../")
+	require.NoError(t, err)
+
 	// start test server and make request
-	server := NewServer(store)
+	server, err := NewServer(config, store)
 	url := fmt.Sprintf("/account/%d", account.ID)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	require.NoError(t, err)

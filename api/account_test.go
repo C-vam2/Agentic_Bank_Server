@@ -30,7 +30,8 @@ func newTestServer(t *testing.T, store *mockdb.MockStore) *Server {
 }
 
 func TestGetAccountApi(t *testing.T) {
-	account := randomAccount()
+	user := randomUser(t)
+	account := randomAccount(user.Username)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -49,6 +50,7 @@ func TestGetAccountApi(t *testing.T) {
 	url := fmt.Sprintf("/account/%d", account.ID)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	require.NoError(t, err)
+	addAuthorization("user", time.Minute, server.tokenMaker, t, request, authorizationTypeBearer)
 	recorder := httptest.NewRecorder()
 
 	server.router.ServeHTTP(recorder, request)
@@ -58,10 +60,10 @@ func TestGetAccountApi(t *testing.T) {
 	requireBodyMatchAccount(t, recorder.Body, account)
 }
 
-func randomAccount() db.Account {
+func randomAccount(owner string) db.Account {
 	return db.Account{
 		ID:       utils.RandomInt(1, 1000),
-		Owner:    utils.RandomOwner(),
+		Owner:    owner,
 		Balance:  utils.RandomMoney(),
 		Currency: utils.RandomCurrency(),
 	}
@@ -76,4 +78,15 @@ func requireBodyMatchAccount(t *testing.T, body *bytes.Buffer, account db.Accoun
 	require.NoError(t, err)
 	require.Equal(t, account, gotAccount)
 
+}
+
+func randomUser(t *testing.T) *db.User {
+	return &db.User{
+		Username:          utils.RandomOwner(),
+		HashedPassword:    "hashedpassword",
+		FullName:          utils.RandomString(32),
+		Email:             utils.RandomEmail(),
+		PasswordChangedAt: time.Now(),
+		CreatedAt:         time.Now(),
+	}
 }

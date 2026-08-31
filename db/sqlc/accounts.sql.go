@@ -116,19 +116,21 @@ const listAccounts = `-- name: ListAccounts :many
 
 
 SELECT id, owner, balance, currency, created_at FROM accounts
+WHERE owner = $1
 ORDER BY id
-LIMIT $1 
-OFFSET $2
+LIMIT $2 
+OFFSET $3
 `
 
 type ListAccountsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Owner  string `json:"owner"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
 }
 
 // The FOR UPDATE clause in SQL is used to lock the selected rows so that other transactions cannot modify or delete them until the current transaction is committed or rolled back. It is commonly used in transactional systems to prevent concurrency issues like lost updates.
 func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error) {
-	rows, err := q.query(ctx, q.listAccountsStmt, listAccounts, arg.Limit, arg.Offset)
+	rows, err := q.query(ctx, q.listAccountsStmt, listAccounts, arg.Owner, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

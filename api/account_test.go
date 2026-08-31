@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	mockdb "github.com/Agentic_Bank_Server/db/mock"
 	db "github.com/Agentic_Bank_Server/db/sqlc"
@@ -15,6 +16,18 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
+
+func newTestServer(t *testing.T, store *mockdb.MockStore) *Server {
+	config := utils.Config{
+		SymmetricKey:   utils.RandomString(32),
+		AccessDuration: time.Minute,
+	}
+
+	// start test server and make request
+	server, err := NewServer(config, store)
+	require.NoError(t, err)
+	return server
+}
 
 func TestGetAccountApi(t *testing.T) {
 	account := randomAccount()
@@ -30,11 +43,9 @@ func TestGetAccountApi(t *testing.T) {
 		Times(1).
 		Return(account, nil)
 
-	config, err := utils.LoadConfig("../")
-	require.NoError(t, err)
-
 	// start test server and make request
-	server, err := NewServer(config, store)
+	server := newTestServer(t, store)
+
 	url := fmt.Sprintf("/account/%d", account.ID)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	require.NoError(t, err)

@@ -20,7 +20,7 @@ type Server struct {
 // NewServer creates a new HTTP server and setup routing.
 func NewServer(config utils.Config, store db.Store) (*Server, error) {
 
-	tokenMaker, err := token.NewPasetoMaker(config.SymmetricKey)
+	tokenMaker, err := token.NewJWTMaker(config.SymmetricKey)
 
 	if err != nil {
 		return nil, err

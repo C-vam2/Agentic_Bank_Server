@@ -1,0 +1,59 @@
+
+name: Deploy to production
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+
+    # Required for GitHub OIDC authentication with AWS
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      AWS_REGION: ap-south-1
+      ECR_REPOSITORY: simplebank
+      IMAGE_TAG: ${{ github.sha }}
+      GOTOOLCHAIN: go1.25.0+auto
+
+    steps:
+      # 1. Checkout source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Authenticate to AWS using GitHub OIDC
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/my-github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 3. Verify AWS authentication
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      # 4. Authenticate Docker with Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 5. Build Docker image
+      - name: Build Docker image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker build \
+            -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            .
+
+      # 6. Push Docker image to ECR
+      - name: Push Docker image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker push $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG

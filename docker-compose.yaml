@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=agentic_bank_server
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d agentic_bank_server"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_SOURCE=postgres://root:secret@postgres:5432/agentic_bank_server?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy

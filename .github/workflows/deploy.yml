@@ -13,6 +13,10 @@ jobs:
       id-token: write
       contents: read
 
+    env:
+      ECR_REPOSITORY: simplebank
+      IMAGE_TAG: ${{ github.sha }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
